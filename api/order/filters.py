@@ -1,50 +1,20 @@
-from django_filters import rest_framework
-from django_filters.rest_framework import FilterSet
+from django_filters import rest_framework as filters
 
-from apps.order.models import DraftOrder, Order
+from apps.order.models import Order, Payment
 
 
-class OrderFilter(FilterSet):
-    start_date = rest_framework.DateFilter(
-        field_name="created_at", lookup_expr="date__gte"
-    )
-    end_date = rest_framework.DateFilter(
-        field_name="created_at", lookup_expr="date__lte"
-    )
-    pinfl = rest_framework.CharFilter(field_name="client__personal__pinfl", lookup_expr="exact")
-    full_name = rest_framework.CharFilter(field_name="client__full_name", lookup_expr="icontains")
-    phone_number = rest_framework.CharFilter(field_name="client__phone", lookup_expr="icontains")
-    number = rest_framework.CharFilter(field_name="number", lookup_expr="icontains")
+class OrderFilter(filters.FilterSet):
+    created_from = filters.DateFilter(field_name="created_at", lookup_expr="date__gte")
+    created_to = filters.DateFilter(field_name="created_at", lookup_expr="date__lte")
 
     class Meta:
         model = Order
-        fields = {
-            "duration": ["exact"],
-            "company": ["exact"],
-            "status": ["exact"],
-        }
+        fields = ("status", "merchant__uuid", "client__uuid", "created_from", "created_to")
 
 
-class DraftOrderFilter(FilterSet):
-    start_date = rest_framework.DateFilter(
-        field_name="created_at", lookup_expr="date__gte"
-    )
-    end_date = rest_framework.DateFilter(
-        field_name="created_at", lookup_expr="date__lte"
-    )
-    pinfl = rest_framework.CharFilter(
-        field_name="client__personal__pinfl", lookup_expr="exact"
-    )
-    full_name = rest_framework.CharFilter(
-        field_name="client__full_name", lookup_expr="icontains"
-    )
-    phone_number = rest_framework.CharFilter(
-        field_name="client__phone", lookup_expr="icontains"
-    )
+class PaymentFilter(filters.FilterSet):
+    is_paid = filters.BooleanFilter(field_name="paid_at", lookup_expr="isnull", exclude=True)
 
     class Meta:
-        model = DraftOrder
-        fields = {
-            "duration": ["exact"],
-            "company": ["exact"],
-        }
+        model = Payment
+        fields = ("order__uuid", "due_date", "is_paid")
